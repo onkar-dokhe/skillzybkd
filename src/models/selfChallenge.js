@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const questionAndAnswers = new mongoose.Schema({
+    questionId: String,
+    answer: Number,
+    _id: false,
+});
+
 const selfChallengeSchema = new mongoose.Schema({
     userId: {
         type: String,
@@ -16,6 +22,7 @@ const selfChallengeSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    submissions: [questionAndAnswers],
     submittedTime: Date,
 }, { timestamps: true, versionKey: false });
 

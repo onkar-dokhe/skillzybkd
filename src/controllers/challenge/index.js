@@ -3,21 +3,29 @@ const projectConfig = require("../../config");
 const Challenge = require("../../models/challenge");
 const TrendingModel = require("../../models/trending");
 const UserModel = require("../../models/user");
-const { selectUniqueQuestions, findQuestionLevel } = require("../../utils/challenge");
+const { selectUniqueQuestions, findQuestionLevel, getRandomQuestions } = require("../../utils/challenge");
 const { createChallengeValidation } = require("../../validations/challenge");
+const languages = require("../../data/language.json");
+const { getPresignedUrl } = require("../../utils/s3");
 
-const createChallenge = async (req, res) => {
+const getLanguages = async (req, res) => {
+  const resp = {
+    success: true,
+    data: languages
+  };
+  res.status(200).json(resp);
+
+}
+
+const getRandomUser = async (req, res) => {
   try {
-    const { city, college } = req.query;
-    const validation = createChallengeValidation(req.body);
-    if (validation.error) {
-      return res.status(422).json({ success: false, message: validation.error.details[0].message });
-    }
-
     const userId = req.user._id;
 
-    let [userA, availableUsers, newUsers] = await Promise.all([
-      UserModel.findById(userId).lean(),
+    let userA = await UserModel.findOne({ _id: userId }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean();
+    const city = userA.city;
+    const college = userA.college;
+
+    let [availableUsers, newUsers] = await Promise.all([
       UserModel.find({
         _id: { $ne: userId },
         role: 'user',
@@ -96,8 +104,47 @@ const createChallenge = async (req, res) => {
       userB = userIds[userIndex2];
     }
 
+    const opponent = await UserModel.findOne({ _id: userB }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean();
+    if (userA.image) {
+      userA.image = await getPresignedUrl(userA.image);
+    }
+    if (opponent.image) {
+      opponent.image = await getPresignedUrl(opponent.image);
+    }
+    const resp = {
+      success: true,
+      data: { me: userA, opponent }
+    };
+    res.status(200).json(resp);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
+  }
+}
+
+const createChallenge = async (req, res) => {
+  try {
+    const { opponentId, topic } = req.body;
+    const validation = createChallengeValidation(req.body);
+    if (validation?.error) {
+      return res.status(422).json({ success: false, message: validation.error.details[0].message });
+    }
+    if (opponentId === req.user._id) {
+      const resp = {
+        status: false,
+        message: "You cannot throw a challenge at yourself",
+      };
+      return res.status(400).send(resp);
+    }
+    let userA = await UserModel.findById({ _id: req.user._id }).lean();
+
     //...............select question based on level........................................................................
     let questions = await findQuestionLevel(userA);
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      // If no questions found, get 5 random questions
+      questions = await getRandomQuestions(5);
+    }
+
     if (!Array.isArray(questions) || questions.length === 0) {
       const resp = {
         status: false,
@@ -114,23 +161,24 @@ const createChallenge = async (req, res) => {
     //................................Select a certain number of unique questions......................................
     const selectedQuestion = selectUniqueQuestions(topicWiseQuestion, projectConfig.challenge.questionCount);
 
-    const questionWithoutAns = selectedQuestion.map(q => {
-      const optionsWithoutAns = q?.options?.map(({ option }) => ({ option }));
-      if (optionsWithoutAns && q?.options) {
-        q.options = optionsWithoutAns;
-      }
-      return q;
-    });
+    // const questionWithoutAns = selectedQuestion.map(q => {
+    //   const optionsWithoutAns = q?.options?.map(({ option }) => ({ option }));
+    //   if (optionsWithoutAns && q?.options) {
+    //     q.options = optionsWithoutAns;
+    //   }
+    //   return q;
+    // });
+
     const userData = {
-      fromUser: userId,
-      toUser: userB,
-      topic: req.body.topic,
-      questions: questionWithoutAns,
+      fromUser: req.user._id,
+      toUser: opponentId,
+      topic: topic,
+      questions: selectedQuestion,
     }
     const result = await Challenge.create(userData);
 
     // handle trending challenge
-    handleTrendingChallenge(req.body.topic);
+    handleTrendingChallenge(topic);
 
     const resp = {
       success: true,
@@ -163,6 +211,45 @@ const getChallenges = async (req, res) => {
   try {
     const userId = req.user._id;
     const challenges = await Challenge.find({ $or: [{ toUser: userId }, { fromUser: userId }] }).sort({ createdAt: -1 }).lean();
+    for await (const challenge of challenges) {
+      const [userA, userB, winner] = await Promise.all([
+        await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+        await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+        challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      ]);
+      if (challenge.fromUser === userId && challenge?.submissions?.from) {
+        challenge.submissions = {
+          from: challenge.submissions.from,
+        }
+      } else {
+        challenge.submissions = [];
+      }
+      if (!challenge?.submissions?.from) {
+        if (challenge.toUser === userId && challenge?.submissions?.to) {
+          challenge.submissions = {
+            to: challenge.submissions.to,
+          }
+        } else {
+          challenge.submissions = [];
+        }
+      }
+
+      if (userA.image) {
+        userA.image = await getPresignedUrl(userA.image);
+      }
+      if (userB.image) {
+        userB.image = await getPresignedUrl(userB.image);
+      }
+      if (winner?.image) {
+        winner.image = await getPresignedUrl(winner.image);
+      }
+
+      challenge.fromUser = userA;
+      challenge.toUser = userB;
+      if (winner) {
+        challenge.winner = winner;
+      }
+    }
     const resp = {
       success: true,
       data: challenges
@@ -185,6 +272,43 @@ const getChallenge = async (req, res) => {
       };
       return res.status(404).send(resp);
     }
+    const [userA, userB, winner] = await Promise.all([
+      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+    ]);
+    if (challenge.fromUser === userId && challenge?.submissions?.from) {
+      challenge.submissions = {
+        from: challenge.submissions.from,
+      }
+    } else {
+      challenge.submissions = [];
+    }
+    if (!challenge?.submissions?.from) {
+      if (challenge.toUser === userId && challenge?.submissions?.to) {
+        challenge.submissions = {
+          to: challenge.submissions.to,
+        }
+      } else {
+        challenge.submissions = [];
+      }
+    }
+
+    if (userA.image) {
+      userA.image = await getPresignedUrl(userA.image);
+    }
+    if (userB.image) {
+      userB.image = await getPresignedUrl(userB.image);
+    }
+    if (winner?.image) {
+      winner.image = await getPresignedUrl(winner.image);
+    }
+
+    challenge.fromUser = userA;
+    challenge.toUser = userB;
+    if (winner) {
+      challenge.winner = winner;
+    }
     const resp = {
       success: true,
       data: challenge
@@ -195,4 +319,73 @@ const getChallenge = async (req, res) => {
   }
 };
 
-module.exports = { createChallenge, getChallenges, getChallenge };
+const getHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const challengeId = req.params.id;
+
+    const challenge = await Challenge.findOne({ _id: challengeId, $or: [{ toUser: userId }, { fromUser: userId }] }).lean();
+
+    if (challenge && challenge.submittedBy) {
+      delete challenge.submittedBy;
+    }
+
+    if (!challenge) {
+      const resp = {
+        status: false,
+        message: "No Challenge found",
+      };
+      return res.status(404).send(resp);
+    }
+
+    const [userA, userB, winner] = await Promise.all([
+      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+    ]);
+
+
+    if (challenge.fromUser === userId && challenge?.submissions?.from) {
+      challenge.submissions = {
+        from: challenge.submissions.from,
+      }
+    } else {
+      challenge.submissions = [];
+    }
+    if (!challenge?.submissions?.from) {
+      if (challenge.toUser === userId && challenge?.submissions?.to) {
+        challenge.submissions = {
+          to: challenge.submissions.to,
+        }
+      } else {
+        challenge.submissions = [];
+      }
+    }
+
+    if (userA.image) {
+      userA.image = await getPresignedUrl(userA.image);
+    }
+    if (userB.image) {
+      userB.image = await getPresignedUrl(userB.image);
+    }
+    if (winner?.image) {
+      winner.image = await getPresignedUrl(winner.image);
+    }
+
+    challenge.fromUser = userA;
+    challenge.toUser = userB;
+    if (winner) {
+      challenge.winner = winner;
+    }
+    const resp = {
+      success: true,
+      data: challenge
+    };
+    res.status(200).json(resp);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
+  }
+
+}
+
+module.exports = { getLanguages, getRandomUser, createChallenge, getChallenges, getChallenge, getHistory };

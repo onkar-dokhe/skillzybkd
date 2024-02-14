@@ -1,10 +1,13 @@
 // Import necessary modules
 const { Types } = require("mongoose");
 const Challenge = require("../../models/challenge");
+const NotificationModel = require("../../models/notification");
 const Question = require("../../models/question");
 const SelfChallenge = require("../../models/selfChallenge");
 const UserModel = require("../../models/user");
 const { answerValidation, selfChallengeAnswerValidation, checkAnswerValidation } = require("../../validations/qAndA");
+const CoinModel = require("../../models/coin");
+const { sendNotification } = require("../../utils/notification");
 
 const submitAnswer = async (req, res) => {
     const validation = answerValidation(req.body);
@@ -17,9 +20,36 @@ const submitAnswer = async (req, res) => {
         const { challengeId, topic, answers } = req.body;
 
         const [userA, challenge] = await Promise.all([
-            await UserModel.findById(userId),
-            await Challenge.findOne({ _id: challengeId, $or: [{ fromUser: userId }, { toUser: userId }] }).lean(),
+            UserModel.findById(userId),
+            Challenge.findOne({ _id: challengeId, $or: [{ fromUser: userId }, { toUser: userId }] }).lean(),
         ]);
+
+        if (!challenge || (!challenge?.submittedBy?.fromUser && challenge?.toUser === userId)) {
+            // Handle case where the challenge is not found
+            const resp = {
+                success: false,
+                error: {
+                    message: (!challenge?.submittedBy?.fromUser && challenge?.toUser === userId) ? "Answers to the challenge were not submitted by the first user" : "Challenge not found",
+                }
+            };
+            return res.status(404).json(resp);
+        }
+
+        // Check if the challenge has expired
+        const createdAtTime = new Date(challenge.createdAt).getTime(); // Convert createdAt to milliseconds
+        const currentTime = Date.now(); // Current time in milliseconds
+        const hoursElapsed = (currentTime - createdAtTime) / (1000 * 60 * 60); // Calculate hours elapsed
+
+        if (hoursElapsed >= 24) {
+            // Challenge has expired
+            const resp = {
+                success: false,
+                error: {
+                    message: "Challenge has expired",
+                }
+            };
+            return res.status(400).json(resp);
+        }
         if (!challenge || !userA || challenge?.submittedBy?.toUser === userId || challenge?.submittedBy?.fromUser === userId) {
             const resp = {
                 status: false,
@@ -37,20 +67,19 @@ const submitAnswer = async (req, res) => {
             if (!question || !question?.options) {
                 throw new Error(`Invalid question ID: ${q.questionId}`);
             }
-            let correctIndex = 0;
+            let correctIndex = "";
 
             for (let i = 0; i < question.options.length; i++) {
                 if (question.options[i].isCorrect === true) {
-                    correctIndex = i;
+                    correctIndex = question.options[i]._id;
                     break;
                 }
             }
-            correctIndex += 1;
 
-            if (q.answer === correctIndex) {
+            if (q.answer === correctIndex.toString()) {
                 result += 5;
             } else {
-                result -= 3;
+                result -= 2;
             }
         }));
 
@@ -60,6 +89,8 @@ const submitAnswer = async (req, res) => {
             { $inc: { 'skill.$.point': result } },
             { new: true }
         ).lean();
+
+
         if (!user) {
             // If the user doesn't exist or the subject doesn't exist, add a new skill
             await UserModel.findOneAndUpdate(
@@ -82,9 +113,10 @@ const submitAnswer = async (req, res) => {
         // Update Challenge Results
         const challengeResultField = challenge.fromUser === userId ? 'result.from' : 'result.to';
         const submittedByField = challenge.fromUser === userId ? 'submittedBy.fromUser' : 'submittedBy.toUser';
+
         let winner = null;
-        if (challenge.toUser === userId) {
-            winner = challenge?.result?.from >= result ? challenge.fromUser : challenge.toUser;
+        if (challenge.toUser === userId && challenge?.result?.from !== challenge?.result?.to) {
+            winner = challenge?.result?.from > result ? challenge.fromUser : challenge.toUser;
         }
         await Challenge.findOneAndUpdate(
             { _id: challengeId },
@@ -92,7 +124,9 @@ const submitAnswer = async (req, res) => {
                 $set: {
                     [challengeResultField]: result,
                     [submittedByField]: userId,
-                    ...(winner && { winner })
+                    ...(winner && { winner }),
+                    ...(challenge?.fromUser === userId && { 'submissions.from': answers }),
+                    ...(challenge?.toUser === userId && { 'submissions.to': answers }),
                 }
             },
             { new: true })
@@ -101,7 +135,54 @@ const submitAnswer = async (req, res) => {
         // handle other users level
         handleOtherUserLevel();
 
-        // TODO: send notification to the other user
+        if (challenge?.fromUser === userId) {
+            const userBInfo = await UserModel.findById(winner);
+            // send notification
+            sendChallengeNotification({
+                sender: {
+                    id: userA._id,
+                    name: userA.name,
+                    image: userBInfo?.image,
+                },
+                toUserId: challenge.toUser,
+                challengeId: challengeId,
+                title: `${userA.name} challenged you in ${challenge.topic}`
+            });
+        } else if (winner) {
+            const userBInfo = await UserModel.findById(winner);
+            // send notification
+            sendChallengeNotification({
+                sender: {
+                    id: userBInfo._id,
+                    name: userBInfo.name,
+                    image: userBInfo?.image,
+                },
+                toUserId: challenge.fromUser,
+                challengeId: challengeId,
+                title: `${userBInfo.name} won a challenge in ${challenge.topic}`
+            });
+        } else if (!winner) {
+            const userBInfo = await UserModel.findById(challenge.toUser);
+            // send notification
+            sendChallengeNotification({
+                sender: {
+                    id: userBInfo._id,
+                    name: userBInfo.name,
+                    image: userBInfo?.image,
+                },
+                toUserId: challenge.fromUser,
+                challengeId: challengeId,
+                title: `Challenge is tied in ${challenge.topic}`
+            });
+        }
+        const coinUser = await CoinModel.findById(userId);
+
+        if (coinUser) {
+            coinUser.coins = userA.score;
+            await coinUser.save();
+        } else {
+            await CoinModel.create({ userId, coins: userA.score });
+        }
 
         // response
         const resp = {
@@ -115,6 +196,38 @@ const submitAnswer = async (req, res) => {
         res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
     }
 };
+
+const sendChallengeNotification = async ({
+    sender,
+    challengeId,
+    toUserId,
+    title,
+}) => {
+    const receiver = await UserModel.findOne({ _id: toUserId }).lean();
+    if (!receiver || !receiver?._id) {
+        return;
+    }
+    // Notification Sender Payload
+    const payload = {
+        title: title,
+        // content: `${sender.name} has thrown a challenge.`,
+        token: receiver?.fcmToken,
+        isHighPriority: true,
+        data: {},
+        challengeId: challengeId,
+    };
+    await NotificationModel.create({
+        ...payload,
+        sender,
+        receiver: {
+            id: receiver?._id,
+            name: receiver?.name,
+        }
+    })
+    if (receiver?.fcmToken) {
+        await sendNotification(payload);
+    }
+}
 
 const calculateUserPercentages = async (topic) => {
     // Fetch users with the specified topic
@@ -265,20 +378,19 @@ const selfChallengeAnswer = async (req, res) => {
             if (!question || !question?.options?.length) {
                 throw new Error(`Invalid question ID: ${q.questionId}`);
             }
-            let correctIndex = 0;
+            let correctIndex = "";
 
             for (let i = 0; i < question.options.length; i++) {
                 if (question.options[i].isCorrect === true) {
-                    correctIndex = i;
+                    correctIndex = question.options[i]._id;
                     break;
                 }
             }
-            correctIndex += 1;
 
-            if (q.answer === correctIndex) {
+            if (q.answer === correctIndex.correctIndex.toString()) {
                 result += 5;
             } else {
-                result -= 3;
+                result -= 2;
             }
         }));
 
@@ -303,7 +415,7 @@ const selfChallengeAnswer = async (req, res) => {
         await userA.save();
 
         // Update Challenge Results
-        await SelfChallenge.findOneAndUpdate({ _id: challengeId }, { $set: { result, submittedTime: new Date() } }, { new: true }).lean();
+        await SelfChallenge.findOneAndUpdate({ _id: challengeId }, { $set: { result, submittedTime: new Date(), submissions: answers } }, { new: true }).lean();
 
         // response
         const resp = {

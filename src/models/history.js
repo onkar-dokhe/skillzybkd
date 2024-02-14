@@ -3,12 +3,11 @@ const mongoose = require('mongoose');
 
 const questionAndAnswers = new mongoose.Schema({
     questionId: String,
-    answer: String,
+    answer: Number,
     _id: false,
 });
 
-
-const challengeSchema = new mongoose.Schema({
+const HistorySchema = new mongoose.Schema({
     fromUser: {
         type: String,
         required: true,
@@ -55,5 +54,5 @@ const challengeSchema = new mongoose.Schema({
     versionKey: false,
 });
 
-const Challenge = mongoose.model('Challenge', challengeSchema);
-module.exports = Challenge;
+const History = mongoose.model('History', HistorySchema);
+module.exports = History;

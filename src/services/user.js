@@ -1,4 +1,5 @@
 // Import the UserModel schema
+const OTPModel = require('../models/otp');
 const UserModel = require('../models/user');
 
 // Function to add a new user to the database
@@ -12,6 +13,42 @@ const addUser = async (data) => {
         delete newUser?.password;
 
         return newUser;
+    } catch (error) {
+        console.log(error);
+        return null; // Return null if an error occurs
+    }
+}
+
+const addOTP = async (data) => {
+    try {
+        return OTPModel.create(data);
+    } catch (error) {
+        console.log(error);
+        return null; // Return null if an error occurs
+    }
+}
+
+const getOTP = async (query) => {
+    try {
+        return OTPModel.findOne(query).lean();
+    } catch (error) {
+        console.log(error);
+        return null; // Return null if an error occurs
+    }
+}
+
+const updateOTP = async (query, data) => {
+    try {
+        return OTPModel.findOneAndUpdate(query, data, { new: true }).lean();
+    } catch (error) {
+        console.log(error);
+        return null; // Return null if an error occurs
+    }
+}
+
+const deleteOTP = async (query) => {
+    try {
+        return OTPModel.findOneAndDelete(query).lean();
     } catch (error) {
         console.log(error);
         return null; // Return null if an error occurs
@@ -52,4 +89,4 @@ const updateUser = async (query, data) => {
 }
 
 // Export the user service functions
-module.exports = { addUser, findUser, updateUser, findUserWithPassword };
+module.exports = { addUser, findUser, updateUser, findUserWithPassword, addOTP, getOTP, updateOTP, deleteOTP };

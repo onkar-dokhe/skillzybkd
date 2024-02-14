@@ -10,6 +10,10 @@
 
 const express = require('express');
 const router = express.Router();
+//image uploads library
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage })
 
 // Import user account controller and user authentication middleware
 const userAccountController = require('../../controllers/user/account');
@@ -17,8 +21,9 @@ const { userAuthentication } = require('../../middlewares/authenticate');
 
 // Define routes and associate with controller methods
 router.get('', userAuthentication, userAccountController.me);
-router.patch('', userAuthentication, userAccountController.update);
+router.patch('', userAuthentication, upload.single('image'),  userAccountController.update);
+router.patch('/change-password/send-otp', userAuthentication, userAccountController.changePasswordSendOTP);
 router.patch('/change-password', userAuthentication, userAccountController.changePassword);
+router.get('/coin', userAuthentication, userAccountController.getCoin);
 
-// Export the user account router
 module.exports = router;

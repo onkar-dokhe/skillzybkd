@@ -14,9 +14,11 @@ const router = express.Router();
 const authController = require('../../controllers/auth/user');
 
 // Define routes and associate with controller methods
+router.post('/signup-send-otp', authController.sendOTP);
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-router.get('/check-auth', authController.checkAuth);
+router.post('/google', authController.googleSignIn);
+// router.get('/check-auth', authController.checkAuth);
 
 // Additional routes (commented out for now)
 router.post('/forgot-password', authController.forgotPassword);

@@ -6,14 +6,6 @@ const connectToDatabase = require('./internal/db.init'); // Import the function 
 const projectConfig = require('./config'); // Import project configuration
 const startingMiddleware = require('./middlewares/starting.middleware'); // Import starting middleware
 
-var http = require('http');
-
-//create a server object:
-http.createServer(function (req, res) {
-  res.write('Working Fine'); //write a response to the client
-  res.end(); //end the response
-}).listen(80); //the server object listens on port 80
-
 // Define a function to bootstrap the application
 const bootstrap = async () => {
     // Create an Express application

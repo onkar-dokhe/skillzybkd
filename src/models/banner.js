@@ -16,7 +16,7 @@ const BannerSchema = new mongoose.Schema({
     },
     showOnHomePage: {
         type: Boolean,
-        default: false
+        default: true
     },
 }, {
     timestamps: true,

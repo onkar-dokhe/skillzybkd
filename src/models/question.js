@@ -9,9 +9,7 @@ const optionSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
     }
-}, {
-    _id: false
-})
+});
 
 const questionSchema = new mongoose.Schema({
     question: {
@@ -19,7 +17,6 @@ const questionSchema = new mongoose.Schema({
         required: [true, 'Give a question title'],
         index: true,
     },
-    description: String,
     level: {
         type: String,
         required: [true, 'Give the level of this question'],
@@ -40,6 +37,11 @@ const questionSchema = new mongoose.Schema({
         type: [optionSchema]
     },
     points: {
+        type: Number,
+        default: 5,
+        required: true,
+    },
+    timer: {
         type: Number,
         required: true,
     },

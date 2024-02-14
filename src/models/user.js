@@ -15,19 +15,18 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true,
     trim: true,
   },
   city: {
     type: String,
-    required: true,
     trim: true,
+    default: null,
     index: true,
   },
   college: {
     type: String,
-    required: true,
     trim: true,
+    default: null,
     index: true,
   },
   role: {
@@ -38,6 +37,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  image: {
+    type: String,
+    default: null,
+  },
+  socialImage: {
+    type: String,
+    default: null,
   },
   level: {
     type: String,
@@ -61,6 +68,7 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: String,
   resetPasswordExpireTime: Number,
   fcmToken: String,
+  otp: String,
 }, {
   timestamps: true,
   versionKey: false,

@@ -1,5 +1,5 @@
 const forgotPasswordEmailTemplate = (url) => {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
      <html lang="en">
      <head>
        <meta charset="UTF-8">
@@ -70,4 +70,69 @@ const forgotPasswordEmailTemplate = (url) => {
      `;
 }
 
-module.exports = { forgotPasswordEmailTemplate };
+const changePasswordOTPEmailTemplate = (otp, message = 'We received a request to change your password', subject = 'Change Password') => {
+  return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verification OTP</title>
+      <style>
+          body {
+              font-family: 'Arial', sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+              text-align: center;
+          }
+  
+          .container {
+              max-width: 600px;
+              margin: 30px auto;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+  
+          .content {
+              color: #333333;
+              line-height: 1.6;
+          }
+  
+          .otp-container {
+              margin: 30px 0;
+              padding: 20px;
+              background-color: #f0f0f0;
+              border-radius: 8px;
+          }
+  
+          .otp {
+              font-size: 24px;
+              font-weight: bold;
+              color: #333333;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="content">
+              <h2>${subject} OTP</h2>
+              <p>Dear User,</p>
+              <p>${message}. Please use the following OTP to proceed:</p>
+          </div>
+          <div class="otp-container">
+              <p class="otp">${otp}</p>
+          </div>
+          <div class="content">
+              <p>If you didn't request this change, please ignore this email.</p>
+              <p>Thank you!</p>
+          </div>
+      </div>
+  </body>
+  </html>
+  `
+}
+
+module.exports = { forgotPasswordEmailTemplate, changePasswordOTPEmailTemplate };

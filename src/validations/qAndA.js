@@ -7,10 +7,6 @@ const createQuestionValidation = (requestBody) => {
             "string.empty": `question cannot be an empty field`,
             "any.required": `question is required.`,
         }),
-        description: Joi.string().messages({
-            "string.base": `description should be a type of String`,
-            "string.empty": `description cannot be an empty field`,
-        }),
         level: Joi.string().valid('easy1', 'easy2', 'easy3', 'mid1', 'mid2', 'mid3', 'hard1', 'hard2', 'hard3').required()
             .messages({
                 "string.base": `level should be a type of String`,
@@ -45,6 +41,10 @@ const createQuestionValidation = (requestBody) => {
             "number.base": `points should be a type of Number`,
             "any.required": `points is required.`,
         }),
+        timer: Joi.number().required().messages({
+            "number.base": `timer should be a type of Number`,
+            "any.required": `timer is required.`,
+        }),
     });
 
     const { value, error } = joiSchema.validate(requestBody, { escapeHtml: true });
@@ -56,10 +56,6 @@ const updateQuestionValidation = (requestBody) => {
         question: Joi.string().messages({
             "string.base": `question should be a type of String`,
             "string.empty": `question cannot be an empty field`,
-        }),
-        description: Joi.string().messages({
-            "string.base": `description should be a type of String`,
-            "string.empty": `description cannot be an empty field`,
         }),
         level: Joi.string().valid('easy1', 'easy2', 'easy3', 'mid1', 'mid2', 'mid3', 'hard1', 'hard2', 'hard3')
             .messages({
@@ -112,9 +108,9 @@ const answerValidation = ({ challengeId, topic, answers }) => {
                 "string.empty": `questionId cannot be an empty field`,
                 "any.required": `questionId is required.`,
             }),
-            answer: Joi.number().integer().min(1).required().messages({
-                "number.base": `answer should be a type of Integer`,
-                "number.min": `answer should be greater than or equal to 1`,
+            answer: Joi.string().required().messages({
+                "string.base": `answer should be a type of String`,
+                "string.empty": `questionId cannot be an empty field`,
                 "any.required": `answer is required.`,
             }),
         })).required().messages({

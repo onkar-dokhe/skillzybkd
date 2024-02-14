@@ -6,4 +6,5 @@ const { userAuthentication } = require('../../middlewares/authenticate');
 
 router.get('/players/top-three', userAuthentication, rankingController.getTopThreePlayer);
 router.get('/players', userAuthentication, rankingController.getAllPlayer);
+
 module.exports = router;

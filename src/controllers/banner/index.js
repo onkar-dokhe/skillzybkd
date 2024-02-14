@@ -1,14 +1,27 @@
 const Banner = require("../../models/banner");
+const { randomImageName, getPresignedUrl, uploadImage } = require("../../utils/s3");
 const { createBannerValidation, updateBannerValidation } = require("../../validations/banner");
 
 const createBanner = async (req, res) => {
     try {
         const validation = createBannerValidation(req.body);
-        if (validation.error) {
-            return res.status(422).json({ success: false, message: validation.error.details[0].message });
+        if (validation.error || !req.file) {
+            return res.status(422).json({ success: false, message: !req.file ? 'Please upload a banner image' : validation.error.details[0].message });
         }
 
-        const result = await Banner.create(req.body);
+        let image = null;
+        if (req.file) {
+            image = randomImageName() + req.file.originalname;
+            const uploadRes = await uploadImage(image, req.file);
+            if (!uploadRes) {
+                return res.status(400).json({ success: false, message: 'Failed to upload banner image' });
+            }
+        }
+
+        const result = await Banner.create({
+            ...req.body,
+            ...(image && { image })
+        });
         if (!result) {
             return res.status(400).json({ success: false, message: 'Failed to add a banner' });
         }
@@ -30,9 +43,24 @@ const updateBanner = async (req, res) => {
             return res.status(422).json({ success: false, message: !id ? 'Provide a valid question id' : validation.error.details[0].message });
         }
 
-        const result = await Banner.findOneAndUpdate({ _id: id }, req.body, { new: true });
+        let image = null;
+        if (req.file) {
+            image = randomImageName() + req.file.originalname;
+            const uploadRes = await uploadImage(image, req.file);
+            if (!uploadRes) {
+                return res.status(400).json({ success: false, message: 'Failed to upload banner image' });
+            }
+        }
+
+        const result = await Banner.findOneAndUpdate({ _id: id }, {
+            ...req.body,
+            ...(image && { image })
+        }, { new: true });
         if (!result) {
             return res.status(400).json({ success: false, message: 'Failed to update' });
+        }
+        if (result.image) {
+            result.image = await getPresignedUrl(result.image);
         }
         const resp = {
             success: true,
@@ -44,12 +72,37 @@ const updateBanner = async (req, res) => {
     }
 };
 
-const getBanners = async (req, res) => {
+const deleteBanner = async (req, res) => {
     try {
-        const questions = await Banner.find({});
+        const { id } = req.params;
+        console.log(id)
+        const result = await Banner.findOneAndDelete({ _id: id });
+        if (!result) {
+            return res.status(400).json({ success: false, message: 'Failed to delete a banner' });
+        }
         const resp = {
             success: true,
-            data: questions,
+            data: {
+                message: 'Successfully deleted a banner',
+            },
+        };
+        res.status(201).send(resp);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
+    }
+};
+
+const getBanners = async (req, res) => {
+    try {
+        const banners = await Banner.find({});
+        for await (const banner of banners) {
+            if (banner.image) {
+                banner.image = await getPresignedUrl(banner.image);
+            }
+        }
+        const resp = {
+            success: true,
+            data: banners,
         };
         return res.json(resp);
     } catch (error) {
@@ -57,4 +110,4 @@ const getBanners = async (req, res) => {
     }
 };
 
-module.exports = { createBanner, getBanners, updateBanner, };
+module.exports = { createBanner, getBanners, updateBanner, deleteBanner, };

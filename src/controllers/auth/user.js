@@ -9,22 +9,22 @@
 */
 
 // Import necessary modules and configurations
-const { userSignUpValidation, loginValidation, forgotPasswordValidation, resetPasswordValidation } = require('../../validations/auth');
+const { userSignUpValidation, loginValidation, forgotPasswordValidation, resetPasswordValidation, googleValidation, userSignUpOTPValidation } = require('../../validations/auth');
 const jwt = require('jsonwebtoken');
 const projectConfig = require('../../config');
 const {
-  findUser, addUser, findUserWithPassword, updateUser,
+  findUser, addUser, findUserWithPassword, updateUser, addOTP, getOTP, updateOTP, deleteOTP,
 } = require('../../services/user');
 
 const { hashValue, compareHash, generateToken, generateResetToken } = require('../../utils/auth');
-const { forgotPasswordEmailTemplate } = require('../../utils/email-template');
+const { forgotPasswordEmailTemplate, changePasswordOTPEmailTemplate } = require('../../utils/email-template');
 const { sendEmail } = require('../../utils/send-email');
 const ONE_HOUR = 3600000; // 1 hour = 3600000 milliseconds
 
 // Function to handle user signup
 async function signup(req, res) {
   // Validate user information
-  const validation = userSignUpValidation(req.body);
+  const validation = userSignUpOTPValidation(req.body);
   if (validation.error) {
     return res.status(422).json({ success: false, message: validation.error.details[0].message });
   }
@@ -35,16 +35,58 @@ async function signup(req, res) {
     return res.status(400).json({ success: false, message: 'Email already exists.' });
   }
 
+  const validOTP = await getOTP({ email: req.body.email, otp: req.body.otp, expireTime: { $gt: Date.now() } });
+  if (!validOTP) {
+    return res.status(400).json({ success: false, message: 'OTP expired or invalid OTP.' });
+  }
+
   // Hash the password
   const hashedPassword = await hashValue(req.body.password);
 
   // Save user into the database
   const user = await addUser({ ...req.body, password: hashedPassword });
   if (!user) {
-    return res.status(400).json({ success: false, message: 'Failed to sign up' });
+    return res.status(400).json({ success: false, message: 'Failed to sign up. Please try again after some times' });
   }
 
+  deleteOTP({ email: req.body.email });
   return res.status(201).json({ success: true, data: user });
+}
+
+// Function to handle user signup otp
+async function sendOTP(req, res) {
+  // Validate user information
+  const validation = userSignUpValidation(req.body);
+  if (validation.error) {
+    return res.status(422).json({ success: false, message: validation.error.details[0].message });
+  }
+
+  // Check if the user already exists
+  const [userExists, otpExists] = await Promise.all([
+    await findUser({ email: req.body.email }),
+    await getOTP({ email: req.body.email })
+  ]);
+  if (userExists) {
+    return res.status(400).json({ success: false, message: 'Email already exists.' });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  const user = otpExists ? await updateOTP({ email: req.body.email }, {
+    otp,
+    expireTime: Date.now() + 5 * 60 * 1000, // 5 * 60 * 1000 means 5 minutes,
+  }) : await addOTP({
+    ...req.body, otp,
+    expireTime: Date.now() + 5 * 60 * 1000, // 5 * 60 * 1000 means 5 minutes,
+  });
+  if (!user) {
+    return res.status(400).json({ success: false, message: 'Failed to send email otp' });
+  }
+
+  // Send the reset password email
+  const template = changePasswordOTPEmailTemplate(otp, 'We received a request to register your account', 'Registration');
+  sendEmail(req.body.email, 'Email Verification OTP', template);
+
+  return res.json({ success: true, data: { message: 'OTP send on your email address' } });
 }
 
 // Function to handle user login
@@ -76,6 +118,46 @@ async function login(req, res) {
       updateUser({ _id: user._id }, { fcmToken: req.body?.fcmToken })
     }
     return res.json({ success: true, data: token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
+  }
+}
+
+// Function to handle user login
+async function googleSignIn(req, res) {
+  try {
+    const { email } = req.body;
+
+    // Validate login information
+    // const validation = googleValidation(req.body);
+    // if (validation.error) {
+    //   return res.status(422).json({ success: false, message: validation.error.details[0].message });
+    // }
+
+    // Find user with password
+    const user = await findUser({ email });
+    if (user) {
+      // Generate a JWT token
+      const token = generateToken(user);
+      if (req.body?.fcmToken) {
+        updateUser({ _id: user._id }, { fcmToken: req.body.fcmToken})
+      }
+      return res.json({ success: true, data: token });
+    } else {
+      let password = email + '&&';
+      // Hash the password
+      const hashedPassword = await hashValue(password);
+
+      // Save user into the database
+      const user = await addUser({ ...req.body, password: hashedPassword, role: 'user', ...(req.body?.photoURL && { socialImage: req.body?.photoURL }) });
+      if (!user) {
+        return res.status(400).json({ success: false, message: 'Failed to sign in with google' });
+      }
+      // Generate a JWT token
+      const token = generateToken(user);
+      return res.json({ success: true, data: token });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
@@ -133,7 +215,7 @@ async function forgotPassword(req, res) {
     }
 
     // Create a reset URL and email template
-    const resetUrl = projectConfig.frontend.baseUrl + '/reset-password/' + resetToken;
+    const resetUrl = projectConfig.application.baseUrl + '/reset-password/' + resetToken;
     const template = forgotPasswordEmailTemplate(resetUrl);
 
     // Send the reset password email
@@ -183,4 +265,4 @@ async function resetPassword(req, res) {
 }
 
 // Export the signup, login, forgotPassword, resetPassword, and checkAuth functions
-module.exports = { signup, login, checkAuth, forgotPassword, resetPassword };
+module.exports = { signup, login, checkAuth, forgotPassword, resetPassword, googleSignIn, sendOTP };
