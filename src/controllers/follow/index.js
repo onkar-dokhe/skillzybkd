@@ -50,7 +50,7 @@ const getFollowing = async (req, res, next) => {
         const followingUsers = [];
         for await (const user of users) {
             const userId = user.followingId;
-            const follow = await UserModel.findOne({ _id: userId, role: 'user' }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 });
+            const follow = await UserModel.findOne({ _id: userId, role: 'user' }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 });
             if (follow) {
                 if (follow.image) {
                     follow.image = await getPresignedUrl(follow.image);

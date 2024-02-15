@@ -20,8 +20,41 @@ const getLanguages = async (req, res) => {
 const getRandomUser = async (req, res) => {
   try {
     const userId = req.user._id;
+    const { opponentId } = req.query;
+    if(opponentId === userId){
+      const resp = {
+        status: false,
+        message: "You can not pass your ID as an opponentId",
+      };
+      return res.status(400).send(resp);
+    }
 
-    let userA = await UserModel.findOne({ _id: userId }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean();
+    let [userA, opponentInfo] = await Promise.all([
+      await UserModel.findOne({ _id: userId }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+      opponentId && await UserModel.findOne({ _id: opponentId }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean()
+    ]);
+
+    if(opponentId && !opponentInfo){
+      const resp = {
+        status: false,
+        message: "Invalid opponent user id",
+      };
+      return res.status(400).send(resp);
+    }
+    if (opponentId) {
+      if (userA.image) {
+        userA.image = await getPresignedUrl(userA.image);
+      }
+      if (opponentInfo.image) {
+        opponentInfo.image = await getPresignedUrl(opponentInfo.image);
+      }
+      const resp = {
+        success: true,
+        data: { me: userA, opponent: opponentInfo }
+      };
+      return res.status(200).json(resp);
+    }
+
     const city = userA.city;
     const college = userA.college;
 
@@ -104,7 +137,7 @@ const getRandomUser = async (req, res) => {
       userB = userIds[userIndex2];
     }
 
-    const opponent = await UserModel.findOne({ _id: userB }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean();
+    const opponent = await UserModel.findOne({ _id: userB }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean();
     if (userA.image) {
       userA.image = await getPresignedUrl(userA.image);
     }
@@ -213,9 +246,9 @@ const getChallenges = async (req, res) => {
     const challenges = await Challenge.find({ $or: [{ toUser: userId }, { fromUser: userId }] }).sort({ createdAt: -1 }).lean();
     for await (const challenge of challenges) {
       const [userA, userB, winner] = await Promise.all([
-        await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-        await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-        challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+        await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+        await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+        challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
       ]);
       if (challenge.fromUser === userId && challenge?.submissions?.from) {
         challenge.submissions = {
@@ -273,9 +306,9 @@ const getChallenge = async (req, res) => {
       return res.status(404).send(resp);
     }
     const [userA, userB, winner] = await Promise.all([
-      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
     ]);
     if (challenge.fromUser === userId && challenge?.submissions?.from) {
       challenge.submissions = {
@@ -339,9 +372,9 @@ const getHistory = async (req, res) => {
     }
 
     const [userA, userB, winner] = await Promise.all([
-      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
-      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.fromUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+      await UserModel.findOne({ _id: challenge.toUser }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
+      challenge?.winner && await UserModel.findOne({ _id: challenge.winner }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean(),
     ]);
 
 

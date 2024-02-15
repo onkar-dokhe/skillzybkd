@@ -8,6 +8,6 @@ router.post('/challenge', userAuthentication, challengeController.createChalleng
 router.get('/challenges', userAuthentication, challengeController.getChallenges);
 router.get('/challenge/:id', userAuthentication, challengeController.getChallenge);
 router.get('/challenge/history/:id', userAuthentication, challengeController.getHistory);
-router.post('/random-user', userAuthentication, challengeController.getRandomUser);
+router.get('/random-user', userAuthentication, challengeController.getRandomUser);
 
 module.exports = router;

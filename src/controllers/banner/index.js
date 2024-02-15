@@ -75,7 +75,6 @@ const updateBanner = async (req, res) => {
 const deleteBanner = async (req, res) => {
     try {
         const { id } = req.params;
-        console.log(id)
         const result = await Banner.findOneAndDelete({ _id: id });
         if (!result) {
             return res.status(400).json({ success: false, message: 'Failed to delete a banner' });

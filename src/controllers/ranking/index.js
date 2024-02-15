@@ -12,7 +12,7 @@ const getTopThreePlayer = async (req, res) => {
         }
         const resp = {
             success: true,
-            data: data
+            data: users
         };
         res.status(200).send(resp);
     } catch (error) {
