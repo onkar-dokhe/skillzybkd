@@ -13,15 +13,30 @@ const NotificationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    topic: String,
     sender: {
         id: String,
-        name: String,
-        image: String,
+        name: {
+            type: String,
+            default: null,
+        },
+        image: {
+            type: String,
+            default: null,
+        },
+        socialImage: String,
     },
     receiver: {
         id: String,
-        name: String,
-        image: String,
+        name: {
+            type: String,
+            default: null,
+        },
+        image: {
+            type: String,
+            default: null,
+        },
+        socialImage: String,
     },
 }, {
     timestamps: {

@@ -35,6 +35,7 @@ const getInterviewees = async (req, res) => {
 };
 
 const getAllUsersWithPagination = async (req, res) => {
+  const userId = req.user?._id;
   const { page = 1, limit = 20, city, college } = req.query;
 
   const pagination = {
@@ -50,7 +51,10 @@ const getAllUsersWithPagination = async (req, res) => {
   }
 
   try {
-    const { users, pageCount } = await getUsers(query, pagination);
+    const { users, pageCount } = await getUsers({
+      ...query,
+      ...((city || college) && userId && { _id: { $ne: userId } })
+    }, pagination);
     for await (const user of users) {
       if (user.image) {
         user.image = await getPresignedUrl(user.image);

@@ -17,7 +17,7 @@ const {
 } = require('../../services/user');
 
 const { hashValue, compareHash, generateToken, generateResetToken } = require('../../utils/auth');
-const { forgotPasswordEmailTemplate, changePasswordOTPEmailTemplate } = require('../../utils/email-template');
+const { forgotPasswordEmailTemplate, commonEmailTemplate } = require('../../utils/email-template');
 const { sendEmail } = require('../../utils/send-email');
 const ONE_HOUR = 3600000; // 1 hour = 3600000 milliseconds
 
@@ -83,7 +83,7 @@ async function sendOTP(req, res) {
   }
 
   // Send the reset password email
-  const template = changePasswordOTPEmailTemplate(otp, 'We received a request to register your account', 'Registration');
+  const template = commonEmailTemplate(otp, new Date().toLocaleDateString(), 'register your account');
   sendEmail(req.body.email, 'Email Verification OTP', template);
 
   return res.json({ success: true, data: { message: 'OTP send on your email address' } });
@@ -140,8 +140,8 @@ async function googleSignIn(req, res) {
     if (user) {
       // Generate a JWT token
       const token = generateToken(user);
-      if (req.body?.fcmToken) {
-        updateUser({ _id: user._id }, { fcmToken: req.body.fcmToken})
+      if (req.body?.fcmToken || req.body?.photoURL) {
+        updateUser({ _id: user._id }, { ...(req.body?.fcmToken && { fcmToken: req.body.fcmToken }), ...(req.body?.photoURL && { socialImage: req.body.photoURL }) })
       }
       return res.json({ success: true, data: token });
     } else {

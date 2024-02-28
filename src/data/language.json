@@ -1,10 +1,132 @@
 [
-    "C++",
-    "Java",
-    "Javascript",
-    "Python",
-    "C",
-    "Dart",
-    "Swipt",
-    "Go"
+    {
+        "key": "Android Developer",
+        "values": [
+            "Java",
+            "Kotlin",
+            "Android SDK",
+            "XML",
+            "Android Studio"
+        ]
+    },
+    {
+        "key": "iOS Developer",
+        "values": [
+            "Swift",
+            "Objective-C",
+            "iOS SDK",
+            "Xcode",
+            "UIKit"
+        ]
+    },
+    {
+        "key": "Quality Assurance Engineer",
+        "values": [
+            "Test Automation",
+            "Test Planning",
+            "Test Case Design",
+            "Quality Assurance (QA)",
+            "Regression Testing"
+        ]
+    },
+    {
+        "key": "DevOps Engineer",
+        "values": [
+            "CI/CD",
+            "Infrastructure as Code (IaC)",
+            "Version Control (Git)",
+            "Containerization (e.g., Docker, Kubernetes)",
+            "Scripting and Automation (e.g., Shell, Python)"
+        ]
+    },
+    {
+        "key": "AWS Engineer",
+        "values": [
+            "Amazon Web Services (AWS)",
+            "Cloud Computing",
+            "Infrastructure as Code (IaC)",
+            "AWS Management Console",
+            "Security and Compliance in AWS"
+        ]
+    },
+    {
+        "key": "GCP Engineer",
+        "values": [
+            "Google Cloud Platform (GCP)",
+            "Cloud Computing",
+            "Infrastructure as Code (IaC)",
+            "GCP Console",
+            "Data Storage and Processing in GCP"
+        ]
+    },
+    {
+        "key": "Data Scientist",
+        "values": [
+            "Machine Learning",
+            "Python",
+            "Data Analysis",
+            "Statistics",
+            "Data Visualization"
+        ]
+    },
+    {
+        "key": "Database Administrator",
+        "values": [
+            "Database Management Systems (e.g., MySQL, Oracle, SQL Server)",
+            "Database Design",
+            "SQL (Structured Query Language)",
+            "Database Security",
+            "Backup and Recovery"
+        ]
+    },
+    {
+        "key": "System Administrator",
+        "values": [
+            "Operating Systems (e.g., Linux, Windows)",
+            "Network Administration",
+            "System Security",
+            "Troubleshooting",
+            "Scripting (e.g., Shell scripting, PowerShell)"
+        ]
+    },
+    {
+        "key": "AI/ML Engineer",
+        "values": [
+            "Machine Learning Algorithms",
+            "Programming Languages (e.g., Python, R)",
+            "Deep Learning Frameworks (e.g., TensorFlow, PyTorch)",
+            "Data Science and Statistics",
+            "Model Deployment and Productionization"
+        ]
+    },
+    {
+        "key": "Fullstack Developer",
+        "values": [
+            "Frontend Development (e.g., HTML, CSS, JavaScript)",
+            "Backend Development (e.g., Node.js, Django, Ruby on Rails)",
+            "Database Management (e.g., MySQL, MongoDB)",
+            "Version Control/Git",
+            "Web Application Frameworks (e.g., React, Angular, Vue.js for frontend; Express, Flask, Laravel for backend)"
+        ]
+    },
+    {
+        "key": "Backend Development",
+        "values": [
+            "Programming Languages (e.g., Java, Python, Node.js)",
+            "Server-Side Frameworks (e.g., Spring Boot, Django, Express)",
+            "Database Management (e.g., SQL, NoSQL)",
+            "API Design and Development",
+            "Server Management and Deployment"
+        ]
+    },
+    {
+        "key": "Frontend Development",
+        "values": [
+            "HTML, CSS, JavaScript",
+            "Frontend Frameworks (e.g., React, Angular, Vue.js)",
+            "Responsive Web Design",
+            "Browser Developer Tools",
+            "Version Control/Git"
+        ]
+    }
 ]

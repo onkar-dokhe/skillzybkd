@@ -28,7 +28,10 @@ const getAllPlayer = async (req, res) => {
             await UserModel.findOne({ _id: userId }, { password: 0, role: 0, fcmToken: 0 }).lean()
         ]);
         const players = [];
+        let i = 1;
         for await (const user of otherUsers) {
+            user.ranking = i;
+            i++;
             if (user.image) {
                 user.image = await getPresignedUrl(user.image);
             }

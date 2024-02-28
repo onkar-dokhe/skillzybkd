@@ -69,6 +69,10 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpireTime: Number,
   fcmToken: String,
   otp: String,
+  isProfileCompleted: {
+    type: Boolean,
+    default: false,
+  }
 }, {
   timestamps: true,
   versionKey: false,

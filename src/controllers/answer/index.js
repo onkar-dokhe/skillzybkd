@@ -105,8 +105,15 @@ const submitAnswer = async (req, res) => {
         await calculateUserPercentages(topic);
 
         //........add the result to the overall score
-        userA.score += result;
-        userA.score = Math.max(0, userA.score);
+        if(challenge.toUser === userId){
+            userA.score += result;
+            userA.score = Math.max(0, userA.score);
+
+            const userBB = await UserModel.findById(challenge.toUser);
+            userBB.score += challenge?.result?.from;
+            userBB.score = Math.max(0, userBB.score);
+            await userBB.save();
+        }
         userA.lastPlayed = new Date();
         await userA.save();
 
@@ -136,14 +143,15 @@ const submitAnswer = async (req, res) => {
         handleOtherUserLevel();
 
         if (challenge?.fromUser === userId) {
-            const userBInfo = await UserModel.findById(winner);
             // send notification
             sendChallengeNotification({
                 sender: {
                     id: userA._id,
                     name: userA.name,
-                    image: userBInfo?.image,
+                    image: userA?.image,
+                    socialImage: userA?.socialImage
                 },
+                topic: challenge.topic,
                 toUserId: challenge.toUser,
                 challengeId: challengeId,
                 title: `${userA.name} challenged you in ${challenge.topic}`
@@ -156,7 +164,9 @@ const submitAnswer = async (req, res) => {
                     id: userBInfo._id,
                     name: userBInfo.name,
                     image: userBInfo?.image,
+                    socialImage: userBInfo?.socialImage
                 },
+                topic: challenge.topic,
                 toUserId: challenge.fromUser,
                 challengeId: challengeId,
                 title: `${userBInfo.name} won a challenge in ${challenge.topic}`
@@ -169,7 +179,9 @@ const submitAnswer = async (req, res) => {
                     id: userBInfo._id,
                     name: userBInfo.name,
                     image: userBInfo?.image,
+                    socialImage: userBInfo?.socialImage
                 },
+                topic: challenge.topic,
                 toUserId: challenge.fromUser,
                 challengeId: challengeId,
                 title: `Challenge is tied in ${challenge.topic}`
@@ -202,6 +214,7 @@ const sendChallengeNotification = async ({
     challengeId,
     toUserId,
     title,
+    topic,
 }) => {
     const receiver = await UserModel.findOne({ _id: toUserId }).lean();
     if (!receiver || !receiver?._id) {
@@ -218,10 +231,13 @@ const sendChallengeNotification = async ({
     };
     await NotificationModel.create({
         ...payload,
+        topic,
         sender,
         receiver: {
             id: receiver?._id,
             name: receiver?.name,
+            image: receiver?.image,
+            socialImage: receiver?.socialImage
         }
     })
     if (receiver?.fcmToken) {

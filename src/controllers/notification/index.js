@@ -3,8 +3,14 @@ const NotificationModel = require("../../models/notification");
 const getNotifications = async (req, res) => {
     try {
         const userId = req.user._id;
+
+        const currentDate = new Date();
+        const sevenDaysAgo = new Date(currentDate);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
         const notifications = await NotificationModel.find({
-            'receiver.id': userId
+            'receiver.id': userId,
+            createdAt: { $gte: sevenDaysAgo }
         }).sort({ createdAt: -1 }).lean();
 
         for await (const notification of notifications) {

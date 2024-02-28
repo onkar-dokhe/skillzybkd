@@ -9,19 +9,19 @@ const languages = require("../../data/language.json");
 const { getPresignedUrl } = require("../../utils/s3");
 
 const getLanguages = async (req, res) => {
+  const topic = req.query.topic;
   const resp = {
     success: true,
-    data: languages
+    data: !topic ? languages.map(language => language.key) : languages.find(language => language.key === topic)?.values
   };
   res.status(200).json(resp);
-
 }
 
 const getRandomUser = async (req, res) => {
   try {
     const userId = req.user._id;
     const { opponentId } = req.query;
-    if(opponentId === userId){
+    if (opponentId === userId) {
       const resp = {
         status: false,
         message: "You can not pass your ID as an opponentId",
@@ -34,7 +34,7 @@ const getRandomUser = async (req, res) => {
       opponentId && await UserModel.findOne({ _id: opponentId }, { id: 1, name: 1, city: 1, college: 1, level: 1, skills: 1, image: 1, socialImage: 1 }).lean()
     ]);
 
-    if(opponentId && !opponentInfo){
+    if (opponentId && !opponentInfo) {
       const resp = {
         status: false,
         message: "Invalid opponent user id",

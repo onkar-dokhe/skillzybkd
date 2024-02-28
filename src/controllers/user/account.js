@@ -19,7 +19,7 @@ const { changePasswordValidation, changePasswordOTPValidation } = require('../..
 const UserModel = require('../../models/user');
 const { getPresignedUrl, uploadImage, randomImageName } = require('../../utils/s3');
 const { sendEmail } = require('../../utils/send-email');
-const { changePasswordOTPEmailTemplate } = require('../../utils/email-template');
+const { commonEmailTemplate } = require('../../utils/email-template');
 
 // Function to retrieve user information
 async function me(req, res) {
@@ -38,6 +38,7 @@ async function update(req, res) {
     if (validation.error) {
       return res.status(422).json({ success: false, message: validation.error.details[0].message });
     }
+    const { city, college } = req.body;
 
     let image = null;
     if (req.file) {
@@ -50,7 +51,8 @@ async function update(req, res) {
 
     const user = await updateUser({ _id: req.user?._id }, {
       ...req.body,
-      ...(image && { image })
+      ...(image && { image }),
+      ...(city && college && { isProfileCompleted: true })
     });
     if (!user) {
       return res.status(400).json({ success: false, message: 'Failed to update user information' });
@@ -90,7 +92,7 @@ async function changePasswordSendOTP(req, res) {
     }
 
     // Send the reset password email
-    const template = changePasswordOTPEmailTemplate(otp);
+    const template = commonEmailTemplate(otp, new Date().toLocaleDateString());
     sendEmail(user.email, 'Change Password OTP', template);
 
     return res.json({ success: true, data: { message: 'OTP send on your email address' } });
