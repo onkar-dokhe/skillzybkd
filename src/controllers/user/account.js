@@ -38,7 +38,6 @@ async function update(req, res) {
     if (validation.error) {
       return res.status(422).json({ success: false, message: validation.error.details[0].message });
     }
-    const { city, college } = req.body;
 
     let image = null;
     if (req.file) {
@@ -52,7 +51,6 @@ async function update(req, res) {
     const user = await updateUser({ _id: req.user?._id }, {
       ...req.body,
       ...(image && { image }),
-      ...(city && college && { isProfileCompleted: true })
     });
     if (!user) {
       return res.status(400).json({ success: false, message: 'Failed to update user information' });

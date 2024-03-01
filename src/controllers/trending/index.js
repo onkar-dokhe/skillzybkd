@@ -1,5 +1,6 @@
 const Challenge = require("../../models/challenge");
 const TrendingModel = require("../../models/trending");
+const { findUser } = require("../../services/user");
 
 const getRecentPlay = async (req, res) => {
     try {
@@ -11,6 +12,10 @@ const getRecentPlay = async (req, res) => {
             ]
         }).sort({ createdAt: -1 }).limit(5).lean();
 
+        for await (const challenge of challenges) {
+            challenge.fromUser = challenge?.fromUser && await findUser({ id: challenge.fromUser });
+            challenge.toUser = challenge?.toUser && await findUser({ id: challenge.toUser });
+        }
         const resp = {
             success: true,
             data: challenges

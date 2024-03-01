@@ -101,7 +101,10 @@ async function login(req, res) {
     }
 
     // Find user with password
-    const user = await findUserWithPassword({ email, role });
+    const [user, userInfo] = await Promise.all([
+      await findUserWithPassword({ email, role }),
+      await findUser({ email, role })
+    ]);
     if (!user) {
       return res.status(400).json({ success: false, message: 'Invalid email or password' });
     }
@@ -117,7 +120,7 @@ async function login(req, res) {
     if (req.body?.fcmToken) {
       updateUser({ _id: user._id }, { fcmToken: req.body?.fcmToken })
     }
-    return res.json({ success: true, data: token });
+    return res.json({ success: true, data: { token, ...userInfo } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message || 'Something went wrong' });

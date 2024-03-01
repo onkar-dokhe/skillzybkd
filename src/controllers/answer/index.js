@@ -105,7 +105,7 @@ const submitAnswer = async (req, res) => {
         await calculateUserPercentages(topic);
 
         //........add the result to the overall score
-        if(challenge.toUser === userId){
+        if (challenge.toUser === userId) {
             userA.score += result;
             userA.score = Math.max(0, userA.score);
 
@@ -201,6 +201,29 @@ const submitAnswer = async (req, res) => {
             success: true,
             data: {
                 score: result
+            }
+        };
+        res.status(201).send(resp);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Something went wrong' });
+    }
+};
+
+const deductScore = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const userA = await UserModel.findById(userId);
+
+        userA.score -= 5;
+        userA.score = Math.max(0, userA.score);
+        userA.lastPlayed = new Date();
+        const updatedUser = await userA.save();
+
+        // response
+        const resp = {
+            success: true,
+            data: {
+                score: updatedUser.score
             }
         };
         res.status(201).send(resp);
@@ -446,4 +469,4 @@ const selfChallengeAnswer = async (req, res) => {
     }
 };
 
-module.exports = { submitAnswer, selfChallengeAnswer, challengeExpiry, checkAnswer };
+module.exports = { submitAnswer, selfChallengeAnswer, challengeExpiry, checkAnswer, deductScore };

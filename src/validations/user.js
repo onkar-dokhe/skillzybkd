@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const accountInfoValidation = ({ name, phone, city, college }) => {
+const accountInfoValidation = ({ name, phone, city, college, isProfileCompleted }) => {
     const joiSchema = Joi.object().keys({
         name: Joi.string()
             .messages({
@@ -15,9 +15,12 @@ const accountInfoValidation = ({ name, phone, city, college }) => {
         college: Joi.string().messages({
             "string.base": `college should be a type of String`,
         }),
+        isProfileCompleted: Joi.boolean().messages({
+            "boolean.base": `isProfileCompleted should be a type of Boolean`,
+        }),
     })
     phone = phone?.toString();
-    const { value, error } = joiSchema.validate({ name, phone, city, college }, { escapeHtml: true })
+    const { value, error } = joiSchema.validate({ name, phone, city, college, isProfileCompleted }, { escapeHtml: true })
     return { value, error }
 }
 
