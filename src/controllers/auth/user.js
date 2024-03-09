@@ -146,7 +146,7 @@ async function googleSignIn(req, res) {
       if (req.body?.fcmToken || req.body?.photoURL) {
         updateUser({ _id: user._id }, { ...(req.body?.fcmToken && { fcmToken: req.body.fcmToken }), ...(req.body?.photoURL && { socialImage: req.body.photoURL }) })
       }
-      return res.json({ success: true, data: token });
+      return res.json({ success: true, data: { token, ...user } });
     } else {
       let password = email + '&&';
       // Hash the password
@@ -159,7 +159,8 @@ async function googleSignIn(req, res) {
       }
       // Generate a JWT token
       const token = generateToken(user);
-      return res.json({ success: true, data: token });
+      delete user?.password;
+      return res.json({ success: true, data: { token, ...user } });
     }
   } catch (error) {
     console.log(error);

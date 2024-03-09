@@ -1,6 +1,55 @@
 [
     {
+        "key": "Fullstack Developer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Ffulls.png",
+        "values": [
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "Node.js",
+            "Django",
+            "Ruby on Rails",
+            "MySQL",
+            "MongoDB",
+            "React",
+            "Angular",
+            "Vue.js",
+            "Express",
+            "Flask",
+            "Laravel",
+            "Version Control (Git)"
+        ]
+    },
+    {
+        "key": "Backend Development",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fbakd.png",
+        "values": [
+            "Node.js",
+            "Django",
+            "Ruby on Rails",
+            "MySQL",
+            "MongoDB",
+            "API Design and Development",
+            "Server Management and Deployment",
+            "Version Control (Git)"
+        ]
+    },
+    {
+        "key": "Frontend Development",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Ffrnd.png",
+        "values": [
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "React",
+            "Angular",
+            "Vue.js",
+            "Version Control (Git)"
+        ]
+    },
+    {
         "key": "Android Developer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fandroid.png",
         "values": [
             "Java",
             "Kotlin",
@@ -11,6 +60,7 @@
     },
     {
         "key": "iOS Developer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fios.png",
         "values": [
             "Swift",
             "Objective-C",
@@ -20,27 +70,23 @@
         ]
     },
     {
-        "key": "Quality Assurance Engineer",
-        "values": [
-            "Test Automation",
-            "Test Planning",
-            "Test Case Design",
-            "Quality Assurance (QA)",
-            "Regression Testing"
-        ]
-    },
-    {
         "key": "DevOps Engineer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fdevops.png",
         "values": [
             "CI/CD",
             "Infrastructure as Code (IaC)",
             "Version Control (Git)",
-            "Containerization (e.g., Docker, Kubernetes)",
-            "Scripting and Automation (e.g., Shell, Python)"
+            "Containerization",
+            "Docker",
+            "Kubernetes",
+            "Scripting and Automation",
+            "Shell",
+            "Python"
         ]
     },
     {
         "key": "AWS Engineer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Faws.png",
         "values": [
             "Amazon Web Services (AWS)",
             "Cloud Computing",
@@ -51,6 +97,7 @@
     },
     {
         "key": "GCP Engineer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fgcp.png",
         "values": [
             "Google Cloud Platform (GCP)",
             "Cloud Computing",
@@ -60,7 +107,21 @@
         ]
     },
     {
+        "key": "AI/ML Engineer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Faiml.png",
+        "values": [
+            "Machine Learning Algorithms",
+            "Python",
+            "R",
+            "TensorFlow",
+            "PyTorch",
+            "Data Science and Statistics",
+            "Model Deployment and Productionization"
+        ]
+    },
+    {
         "key": "Data Scientist",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fds.png",
         "values": [
             "Machine Learning",
             "Python",
@@ -71,8 +132,12 @@
     },
     {
         "key": "Database Administrator",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fdba.png",
         "values": [
-            "Database Management Systems (e.g., MySQL, Oracle, SQL Server)",
+            "Database Management Systems",
+            "MySQL",
+            "Oracle",
+            "SQL Server",
             "Database Design",
             "SQL (Structured Query Language)",
             "Database Security",
@@ -80,53 +145,28 @@
         ]
     },
     {
-        "key": "System Administrator",
+        "key": "Quality Assurance Engineer",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fqa.png",
         "values": [
-            "Operating Systems (e.g., Linux, Windows)",
+            "Test Automation",
+            "Test Planning",
+            "Test Case Design",
+            "Quality Assurance (QA)",
+            "Regression Testing"
+        ]
+    },
+    {
+        "key": "System Administrator",
+        "img": "https://pub-a72c1cc765b1495fa9f672373b3d644c.r2.dev/sub_img%2Fsysad.png",
+        "values": [
+            "Operating Systems",
+            "Linux",
+            "Windows",
             "Network Administration",
             "System Security",
             "Troubleshooting",
-            "Scripting (e.g., Shell scripting, PowerShell)"
-        ]
-    },
-    {
-        "key": "AI/ML Engineer",
-        "values": [
-            "Machine Learning Algorithms",
-            "Programming Languages (e.g., Python, R)",
-            "Deep Learning Frameworks (e.g., TensorFlow, PyTorch)",
-            "Data Science and Statistics",
-            "Model Deployment and Productionization"
-        ]
-    },
-    {
-        "key": "Fullstack Developer",
-        "values": [
-            "Frontend Development (e.g., HTML, CSS, JavaScript)",
-            "Backend Development (e.g., Node.js, Django, Ruby on Rails)",
-            "Database Management (e.g., MySQL, MongoDB)",
-            "Version Control/Git",
-            "Web Application Frameworks (e.g., React, Angular, Vue.js for frontend; Express, Flask, Laravel for backend)"
-        ]
-    },
-    {
-        "key": "Backend Development",
-        "values": [
-            "Programming Languages (e.g., Java, Python, Node.js)",
-            "Server-Side Frameworks (e.g., Spring Boot, Django, Express)",
-            "Database Management (e.g., SQL, NoSQL)",
-            "API Design and Development",
-            "Server Management and Deployment"
-        ]
-    },
-    {
-        "key": "Frontend Development",
-        "values": [
-            "HTML, CSS, JavaScript",
-            "Frontend Frameworks (e.g., React, Angular, Vue.js)",
-            "Responsive Web Design",
-            "Browser Developer Tools",
-            "Version Control/Git"
+            "Shell scripting",
+            "PowerShell"
         ]
     }
 ]

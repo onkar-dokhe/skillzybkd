@@ -12,7 +12,12 @@ const getLanguages = async (req, res) => {
   const topic = req.query.topic;
   const resp = {
     success: true,
-    data: !topic ? languages.map(language => language.key) : languages.find(language => language.key === topic)?.values
+    data: !topic ? languages.map(language => {
+      return {
+        img: language.img,
+        value: language.key
+      }
+    }) : languages.find(language => language.key === topic)?.values
   };
   res.status(200).json(resp);
 }

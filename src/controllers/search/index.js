@@ -17,7 +17,7 @@ const getInterviewees = async (req, res) => {
     }
     const users = await UserModel.find(
       query,
-      { password: 0, role: 0, fcmToken: 0 },
+      { password: 0, role: 0 },
     );
     for await (const user of users) {
       if (user.image) {
@@ -89,7 +89,7 @@ async function getAllUsers(query, pagination) {
   try {
     return await UserModel.find({ ...query, role: 'user' })
       .sort({ createdAt: -1 })
-      .select('-password -fcmToken')
+      .select('-password')
       .skip(pagination.skip)
       .limit(pagination.limit)
       .lean();
