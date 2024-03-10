@@ -1,4 +1,5 @@
 const NotificationModel = require("../../models/notification");
+const { getPresignedUrl } = require("../../utils/s3");
 
 const getNotifications = async (req, res) => {
     try {
