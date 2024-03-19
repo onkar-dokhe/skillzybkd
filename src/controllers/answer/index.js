@@ -200,7 +200,8 @@ const submitAnswer = async (req, res) => {
         const resp = {
             success: true,
             data: {
-                score: result
+                score: result,
+                ...(challenge.toUser === userId && { opponent : challenge.result?.from })
             }
         };
         res.status(201).send(resp);

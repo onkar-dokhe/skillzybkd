@@ -41,16 +41,16 @@ const findQuestionLevel = async (userA) => {
 
 const getRandomQuestions = async (count = 5) => {
     try {
-      const randomQuestions = await Question.aggregate([
-        { $sample: { size: count } },
-      ]);
-  
-      return randomQuestions;
+        const randomQuestions = await Question.aggregate([
+            { $sample: { size: count } },
+        ]);
+
+        return randomQuestions;
     } catch (error) {
-      console.error('Error finding random questions:', error);
-      throw error;
+        console.error('Error finding random questions:', error);
+        throw error;
     }
-  };
+};
 
 const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {

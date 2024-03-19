@@ -159,9 +159,9 @@ const selfChallengeAnswerValidation = ({ topic, answers }) => {
                 "string.empty": `questionId cannot be an empty field`,
                 "any.required": `questionId is required.`,
             }),
-            answer: Joi.number().integer().min(1).required().messages({
-                "number.base": `answer should be a type of Integer`,
-                "number.min": `answer should be greater than or equal to 1`,
+            answer: Joi.string().required().messages({
+                "string.base": `answer should be a type of String`,
+                "string.empty": `answer cannot be an empty field`,
                 "any.required": `answer is required.`,
             }),
         })).required().messages({

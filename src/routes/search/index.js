@@ -9,6 +9,5 @@ router.get('/interviewees', interviewerAuthentication, searchController.getInter
 router.get('/users', userAuthentication, searchController.getAllUsersWithPagination);
 router.get('/admin/users', adminAuthentication, searchController.getAllUsersWithPagination);
 router.get('/languages', userAuthentication, challengeController.getLanguages);
-router.get('/interview/languages', interviewerAuthentication, challengeController.getLanguages);
 
 module.exports = router;

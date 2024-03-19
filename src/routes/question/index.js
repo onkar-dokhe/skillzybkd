@@ -3,11 +3,11 @@ const express = require('express');
 const router = express.Router();
 
 const questionController = require('../../controllers/question/index');
-const { interviewerAuthentication } = require('../../middlewares/authenticate');
+const { adminAuthentication } = require('../../middlewares/authenticate');
 
-router.post('/question', interviewerAuthentication, questionController.createQuestion);
-router.get('/questions/:id', interviewerAuthentication, questionController.getQuestion);
-router.get('/questions', interviewerAuthentication, questionController.getAllQuestions);
-router.patch('/question/:id', interviewerAuthentication, questionController.updateAQuestion);
+router.post('/question', adminAuthentication, questionController.createQuestion);
+router.get('/questions/:id', adminAuthentication, questionController.getQuestion);
+router.get('/questions', adminAuthentication, questionController.getAllQuestions);
+router.patch('/question/:id', adminAuthentication, questionController.updateAQuestion);
 
 module.exports = router;
