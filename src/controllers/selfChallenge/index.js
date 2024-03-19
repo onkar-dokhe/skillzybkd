@@ -12,7 +12,7 @@ const createSelfChallenge = async (req, res) => {
         }
 
         const userA = await UserModel.findById(userId);
-        if(userA?.score > 10){
+        if (userA?.score > 10) {
             const resp = {
                 status: false,
                 message: "Sorry! You already have a 10+ score to start a challenge",
@@ -32,19 +32,19 @@ const createSelfChallenge = async (req, res) => {
 
 
         const topicWiseQuestion = questions.filter(q => q.topic === req.body.topic);
-        const selectedQuestion = selectUniqueQuestions(topicWiseQuestion);
+        const selectedQuestions = selectUniqueQuestions(topicWiseQuestion);
 
-        let questionWithoutAns = selectedQuestion.map(q => {
-            const optionsWithoutAns = q?.options?.map(({ option }) => ({ option }));
-            if (optionsWithoutAns && q?.options) {
-                q.options = optionsWithoutAns;
-            }
-            return q;
-        });
+        // let questionWithoutAns = selectedQuestions.map(q => {
+        //     const optionsWithoutAns = q?.options?.map(({ option }) => ({ option }));
+        //     if (optionsWithoutAns && q?.options) {
+        //         q.options = optionsWithoutAns;
+        //     }
+        //     return q;
+        // });
         const userData = {
             userId: userA._id,
             topic: req.body.topic,
-            questions: questionWithoutAns,
+            questions: selectedQuestions,
         };
         const result = await SelfChallenge.create(userData);
 
