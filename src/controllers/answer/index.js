@@ -76,7 +76,7 @@ const submitAnswer = async (req, res) => {
                 }
             }
 
-            if (q.answer === correctIndex.toString()) {
+            if (q.answer === correctIndex?.toString()) {
                 result += 5;
             } else {
                 result -= 2;
@@ -312,7 +312,7 @@ const handleOtherUserLevel = async () => {
 
         for (let j = currentIndex; j < topxPercent; j++) {
             let levl = totalLevel;
-            userList[j].level = "Level" + levl.toString();
+            userList[j].level = "Level" + levl?.toString();
             await UserModel.updateOne({ _id: userList[j]._id }, { $set: { level: userList[j].level } });
         }
 
@@ -427,7 +427,7 @@ const selfChallengeAnswer = async (req, res) => {
                 }
             }
 
-            if (q.answer === correctIndex.correctIndex.toString()) {
+            if (q.answer === correctIndex?.toString()) {
                 result += 5;
             } else {
                 result -= 2;

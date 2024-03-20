@@ -23,28 +23,21 @@ const getTopThreePlayer = async (req, res) => {
 const getAllPlayer = async (req, res) => {
     try {
         const userId = req.user._id;
-        const [otherUsers, me] = await Promise.all([
-            await UserModel.find({ _id: { $ne: userId }, role: 'user' }, { password: 0, role: 0, fcmToken: 0 }).sort({ score: -1 }).lean(),
-            await UserModel.findOne({ _id: userId }, { password: 0, role: 0, fcmToken: 0 }).lean()
-        ]);
-        const players = [];
+        const users = await UserModel.find({ role: 'user' }, { password: 0, role: 0, fcmToken: 0 }).sort({ score: -1 }).lean();
         let i = 1;
-        for await (const user of otherUsers) {
+        for await (const user of users) {
             user.ranking = i;
             i++;
             if (user.image) {
                 user.image = await getPresignedUrl(user.image);
             }
-            players.push(user);
+            if (user._id?.toString() === userId) {
+                user.isMe = true;
+            }
         }
-        if (me.image) {
-            me.image = await getPresignedUrl(me.image);
-        }
-        me.isMe = true;
-        players.push(me);
         const resp = {
             success: true,
-            data: players
+            data: users
         };
         res.status(200).send(resp);
     } catch (error) {

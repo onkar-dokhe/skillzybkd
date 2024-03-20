@@ -101,7 +101,7 @@ const getRandomUser = async (req, res) => {
     let low = levelIndex, high = levelIndex + 1;
 
     while (low > 0 || high <= 10) {
-      const lowLevel = "Level" + low.toString();
+      const lowLevel = "Level" + low?.toString();
       if (low < 0) {
         low = 0;
       }
@@ -111,7 +111,7 @@ const getRandomUser = async (req, res) => {
         foundLowLevelUsers = availableUsers.filter(c => c.level === lowLevel);
       }
 
-      const highLevel = "Level" + high.toString();
+      const highLevel = "Level" + high?.toString();
       let foundHighLevelUsers = {};
       if (high <= 10) {
         foundHighLevelUsers = availableUsers.filter(c => c.level === highLevel);
