@@ -361,8 +361,7 @@ const checkAnswer = async (req, res) => {
 const challengeExpiry = async (req, res) => {
     try {
         const { challengeId } = req.params;
-        const userId = req.user._id;
-        const challengeTo = await Challenge.findOne({ _id: challengeId, fromUser: userId }).lean();
+        const challengeTo = await Challenge.findOne({ _id: challengeId }).lean();
 
         if (Date.now() - challengeTo?.createdAt <= 24 * 60 * 60 * 1000) {
             const resp = {
